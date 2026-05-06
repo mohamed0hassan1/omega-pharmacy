@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>صيدلية أومجيا</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --blue-deep: #0a2d6e;
+      --blue-mid: #1a4db8;
+      --blue-bright: #2563eb;
+      --blue-light: #3b82f6;
+      --blue-pale: #dbeafe;
+      --blue-ultra: #eff6ff;
+      --white: #ffffff;
+      --gray-soft: #f8fafc;
+      --gray-text: #64748b;
+      --gray-dark: #1e293b;
+      --accent: #0ea5e9;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Cairo', sans-serif; background: var(--white); color: var(--gray-dark); overflow-x: hidden; }
+
+    /* ===== ADMIN BUTTON (مخفي في الكورنر) ===== */
+    #admin-trigger {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 9999;
+      width: 44px; height: 44px;
+      background: var(--blue-deep);
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      opacity: 0.15;
+      transition: opacity 0.3s;
+      font-size: 18px;
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #admin-trigger:hover { opacity: 1; }
+
+    /* ===== ADMIN OVERLAY ===== */
+    #admin-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,45,110,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+    #admin-overlay.open { display: flex; }
+
+    .admin-modal {
+      background: white;
+      border-radius: 24px;
+      width: 95%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 32px 80px rgba(10,45,110,0.3);
+    }
+
+    .admin-header {
+      background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid));
+      padding: 28px 32px;
+      border-radius: 24px 24px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+    }
+
+    .admin-header h2 { font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 800; }
+    .admin-header p { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+
+    .admin-close {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .admin-close:hover { background: rgba(255,255,255,0.25); }
+
+    .admin-body { padding: 32px; }
+
+    /* Login */
+    #login-screen { }
+    #admin-panel { display: none; }
+
+    .admin-login-icon { font-size: 48px; text-align: center; margin-bottom: 16px; }
+    .admin-login-title { text-align: center; font-size: 20px; font-weight: 800; color: var(--blue-deep); margin-bottom: 6px; font-family: 'Tajawal', sans-serif; }
+    .admin-login-sub { text-align: center; color: var(--gray-text); font-size: 14px; margin-bottom: 28px; }
+
+    .admin-input {
+      width: 100%;
+      padding: 13px 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: 'Cairo', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--gray-soft);
+      margin-bottom: 14px;
+      text-align: center;
+      letter-spacing: 3px;
+    }
+    .admin-input:focus { border-color: var(--blue-bright); background: white; }
+
+    .admin-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--blue-mid), var(--blue-bright));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+    }
+    .admin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.4); }
+
+    .login-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: var(--red);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* Admin Tabs */
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 0;
+    }
+    .admin-tab {
+      padding: 10px 18px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray-text);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-family: 'Cairo', sans-serif;
+      transition: color 0.2s;
+    }
+    .admin-tab.active { color: var(--blue-bright); border-bottom-color: var(--blue-bright); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .field-group { margin-bottom: 20px; }
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue-deep);
+      margin-bottom: 7px;
+    }
+    .field-input {
+      width: 100%;
+      padding: 11px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Cairo', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--gray-soft);
+    }
+    .field-input:focus { border-color: var(--blue-bright); background: white; }
+
+    .save-btn {
+      background: linear-gradient(135deg, var(--green), #059669);
+      color: white;
+      border: none;
+      padding: 13px 32px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .save-btn:hover { transform: translateY(-2px); }
+
+    .save-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-top: 14px;
+      display: none;
+      text-align: center;
+    }
+
+    /* Messages Table */
+    .msgs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .msgs-table th {
+      background: var(--blue-ultra);
+      color: var(--blue-deep);
+      padding: 10px 14px;
+      text-align: right;
+      font-weight: 700;
+      border-bottom: 2px solid var(--blue-pale);
+    }
+    .msgs-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--gray-dark);
+    }
+    .msgs-table tr:hover td { background: var(--gray-soft); }
+
+    .msg-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .msg-badge.new { background: #dbeafe; color: var(--blue-mid); }
+    .msg-badge.read { background: #f1f5f9; color: var(--gray-text); }
+
+    .no-msgs { text-align: center; padding: 40px; color: var(--gray-text); }
+    .no-msgs span { font-size: 36px; display: block; margin-bottom: 12px; }
+
+    .logout-btn {
+      background: none;
+      border: 1px solid #e2e8f0;
+      color: var(--gray-text);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { background: #fef2f2; border-color: #fecaca; color: var(--red); }
+
+    .admin-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .admin-welcome { font-size: 16px; font-weight: 700; color: var(--blue-deep); }
+    .admin-welcome span { color: var(--gray-text); font-weight: 400; font-size: 13px; display: block; }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--blue-pale);
+      padding: 0 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 72px;
+      box-shadow: 0 2px 20px rgba(37,99,235,0.08);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--blue-mid), var(--blue-light));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    }
+    .logo-text { font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 900; color: var(--blue-deep); }
+    .logo-text span { color: var(--blue-bright); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--gray-dark); font-weight: 600; font-size: 15px; transition: color 0.2s; position: relative; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: var(--blue-bright); transform: scaleX(0); transition: transform 0.25s; border-radius: 2px; }
+    .nav-links a:hover { color: var(--blue-bright); }
+    .nav-links a:hover::after { transform: scaleX(1); }
+    .nav-cta { background: linear-gradient(135deg, var(--blue-mid), var(--blue-bright)); color: var(--white) !important; padding: 10px 24px; border-radius: 50px; box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
+    .nav-cta::after { display: none !important; }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.45) !important; }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh; padding-top: 72px;
+      background: radial-gradient(ellipse at 20% 50%, rgba(37,99,235,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(14,165,233,0.07) 0%, transparent 50%), var(--white);
+      display: flex; align-items: center; padding-inline: 5%; gap: 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before { content: ''; position: absolute; top: -100px; left: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(37,99,235,0.05), transparent); border-radius: 50%; animation: float 8s ease-in-out infinite; }
+    .hero::after { content: ''; position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(14,165,233,0.06), transparent); border-radius: 50%; animation: float 10s ease-in-out infinite reverse; }
+    @keyframes float { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px, -20px) scale(1.05); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero-content { flex: 1; max-width: 560px; z-index: 1; animation: slideUp 0.8s ease both; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--blue-ultra); border: 1px solid var(--blue-pale); color: var(--blue-mid); padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 700; margin-bottom: 24px; }
+    .hero h1 { font-family: 'Tajawal', sans-serif; font-size: clamp(36px, 5vw, 60px); font-weight: 900; line-height: 1.15; color: var(--blue-deep); margin-bottom: 20px; }
+    .hero h1 em { font-style: normal; background: linear-gradient(135deg, var(--blue-bright), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 17px; color: var(--gray-text); line-height: 1.8; margin-bottom: 36px; }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+
+    .btn-primary { background: linear-gradient(135deg, var(--blue-mid), var(--blue-bright)); color: white; padding: 14px 32px; border-radius: 50px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 20px rgba(37,99,235,0.35); transition: transform 0.2s, box-shadow 0.2s; font-family: 'Cairo', sans-serif; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(37,99,235,0.45); }
+    .btn-outline { background: transparent; color: var(--blue-bright); padding: 14px 32px; border-radius: 50px; border: 2px solid var(--blue-bright); font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s; font-family: 'Cairo', sans-serif; }
+    .btn-outline:hover { background: var(--blue-ultra); transform: translateY(-2px); }
+
+    .hero-visual { flex: 1; max-width: 480px; z-index: 1; animation: slideUp 0.8s ease 0.2s both; }
+    .hero-card-stack { position: relative; height: 400px; }
+    .hero-card { position: absolute; background: white; border-radius: 24px; padding: 28px; box-shadow: 0 20px 60px rgba(37,99,235,0.12); border: 1px solid var(--blue-pale); }
+    .card-main { width: 100%; top: 30px; right: 0; background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid)); color: white; border: none; }
+    .card-main h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .card-main p { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
+    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill { background: rgba(255,255,255,0.15); padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+    .card-float-1 { width: 180px; bottom: 80px; left: -20px; text-align: center; animation: bobble 4s ease-in-out infinite; }
+    .card-float-2 { width: 160px; bottom: 0; right: 20px; text-align: center; animation: bobble 5s ease-in-out infinite 1s; }
+    @keyframes bobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .stat-num { font-size: 28px; font-weight: 900; color: var(--blue-bright); font-family: 'Tajawal', sans-serif; }
+    .stat-label { font-size: 13px; color: var(--gray-text); font-weight: 600; }
+
+    /* ===== STATS BAR ===== */
+    .stats-bar { background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid)); padding: 40px 5%; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 24px; }
+    .stat-item { text-align: center; color: white; }
+    .stat-item .num { font-size: 38px; font-weight: 900; font-family: 'Tajawal', sans-serif; line-height: 1; }
+    .stat-item .label { font-size: 14px; opacity: 0.8; margin-top: 6px; }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 100px 5%; }
+    .section-tag { display: inline-block; background: var(--blue-ultra); color: var(--blue-mid); padding: 5px 16px; border-radius: 50px; font-size: 13px; font-weight: 700; margin-bottom: 14px; border: 1px solid var(--blue-pale); }
+    .section-title { font-family: 'Tajawal', sans-serif; font-size: clamp(28px, 4vw, 44px); font-weight: 900; color: var(--blue-deep); margin-bottom: 14px; }
+    .section-sub { font-size: 16px; color: var(--gray-text); max-width: 500px; line-height: 1.8; margin-bottom: 60px; }
+
+    /* Services */
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+    .service-card { background: var(--white); border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px 28px; transition: all 0.3s; position: relative; overflow: hidden; }
+    .service-card::before { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: radial-gradient(circle at top right, rgba(37,99,235,0.08), transparent); border-radius: 0 20px 0 80px; }
+    .service-card:hover { border-color: var(--blue-light); transform: translateY(-6px); box-shadow: 0 20px 40px rgba(37,99,235,0.12); }
+    .service-icon { width: 56px; height: 56px; background: var(--blue-ultra); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 20px; }
+    .service-card h3 { font-size: 18px; font-weight: 700; color: var(--blue-deep); margin-bottom: 10px; }
+    .service-card p { font-size: 14px; color: var(--gray-text); line-height: 1.7; }
+
+    /* Products */
+    .products-section { background: var(--gray-soft); padding: 100px 5%; }
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .product-card { background: white; border-radius: 20px; padding: 28px 20px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; cursor: pointer; }
+    .product-card:hover { border-color: var(--blue-light); transform: translateY(-4px); box-shadow: 0 16px 32px rgba(37,99,235,0.1); }
+    .product-emoji { font-size: 42px; margin-bottom: 14px; display: block; }
+    .product-card h4 { font-size: 15px; font-weight: 700; color: var(--blue-deep); margin-bottom: 6px; }
+    .product-card p { font-size: 13px; color: var(--gray-text); }
+    .product-tag { display: inline-block; background: var(--blue-ultra); color: var(--blue-mid); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }
+
+    /* Why */
+    .why-section { padding: 100px 5%; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .why-visual { background: linear-gradient(135deg, var(--blue-deep), var(--blue-mid)); border-radius: 32px; padding: 48px; color: white; position: relative; overflow: hidden; }
+    .why-visual::before { content: '⚕'; position: absolute; font-size: 180px; opacity: 0.05; top: -20px; left: -20px; line-height: 1; }
+    .why-visual h3 { font-size: 28px; font-weight: 900; margin-bottom: 8px; font-family: 'Tajawal', sans-serif; }
+    .why-visual p { opacity: 0.8; font-size: 15px; margin-bottom: 32px; }
+    .why-list { list-style: none; }
+    .why-list li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 15px; font-weight: 500; }
+    .why-list li:last-child { border-bottom: none; }
+    .why-list .check { width: 28px; height: 28px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .features-list { list-style: none; }
+    .feature-item { display: flex; gap: 20px; margin-bottom: 32px; }
+    .feat-icon { width: 50px; height: 50px; background: var(--blue-ultra); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .feat-text h4 { font-size: 17px; font-weight: 700; color: var(--blue-deep); margin-bottom: 6px; }
+    .feat-text p { font-size: 14px; color: var(--gray-text); line-height: 1.7; }
+
+    /* Testimonials */
+    .testimonials { background: var(--blue-ultra); padding: 100px 5%; }
+    .testi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .testi-card { background: white; border-radius: 20px; padding: 28px; box-shadow: 0 8px 24px rgba(37,99,235,0.06); border: 1px solid var(--blue-pale); }
+    .stars { color: #f59e0b; font-size: 18px; margin-bottom: 14px; }
+    .testi-text { font-size: 15px; color: var(--gray-dark); line-height: 1.8; margin-bottom: 20px; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-mid), var(--blue-light)); display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: 700; }
+    .author-info strong { display: block; font-size: 15px; color: var(--blue-deep); }
+    .author-info span { font-size: 13px; color: var(--gray-text); }
+
+    /* CTA */
+    .cta-section { padding: 100px 5%; text-align: center; background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-mid) 60%, var(--accent) 100%); position: relative; overflow: hidden; }
+    .cta-section h2 { font-family: 'Tajawal', sans-serif; font-size: clamp(28px, 4vw, 48px); font-weight: 900; color: white; margin-bottom: 16px; position: relative; }
+    .cta-section p { font-size: 17px; color: rgba(255,255,255,0.8); margin-bottom: 40px; max-width: 500px; margin-inline: auto; position: relative; }
+    .btn-white { background: white; color: var(--blue-deep); padding: 16px 40px; border-radius: 50px; border: none; font-size: 17px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); transition: all 0.2s; font-family: 'Cairo', sans-serif; position: relative; }
+    .btn-white:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(0,0,0,0.3); }
+
+    /* Contact */
+    .contact-section { padding: 100px 5%; background: var(--gray-soft); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+    .contact-info h3 { font-family: 'Tajawal', sans-serif; font-size: 28px; font-weight: 900; color: var(--blue-deep); margin-bottom: 16px; }
+    .contact-info p { color: var(--gray-text); line-height: 1.8; margin-bottom: 32px; }
+    .contact-item { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .c-icon { width: 48px; height: 48px; background: var(--blue-ultra); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid var(--blue-pale); }
+    .c-info strong { display: block; font-size: 14px; color: var(--blue-deep); font-weight: 700; }
+    .c-info span { font-size: 14px; color: var(--gray-text); }
+    .contact-form { background: white; border-radius: 24px; padding: 36px; box-shadow: 0 12px 36px rgba(37,99,235,0.08); border: 1px solid var(--blue-pale); }
+    .contact-form h3 { font-family: 'Tajawal', sans-serif; font-size: 22px; font-weight: 800; color: var(--blue-deep); margin-bottom: 24px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--blue-deep); margin-bottom: 8px; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: var(--gray-dark); font-family: 'Cairo', sans-serif; transition: border-color 0.2s; background: var(--gray-soft); outline: none; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--blue-bright); background: white; }
+    .form-group textarea { height: 110px; resize: vertical; }
+
+    /* Footer */
+    footer { background: var(--blue-deep); color: white; padding: 60px 5% 30px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px; }
+    .footer-brand p { opacity: 0.7; font-size: 14px; line-height: 1.8; margin-top: 16px; max-width: 260px; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .footer-logo-text { font-family: 'Tajawal', sans-serif; font-size: 20px; font-weight: 900; }
+    .footer-col h4 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: rgba(255,255,255,0.9); }
+    .footer-col ul { list-style: none; }
+    .footer-col li { margin-bottom: 10px; }
+    .footer-col a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    .footer-col a:hover { color: white; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .footer-bottom p { font-size: 13px; opacity: 0.6; }
+    .social-links { display: flex; gap: 10px; }
+    .social-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+    .social-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* Formspree success */
+    .form-success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 14px 20px; border-radius: 12px; font-size: 15px; text-align: center; margin-top: 14px; display: none; }
+
+    @media (max-width: 900px) {
+      .hero { flex-direction: column; padding-top: 100px; text-align: center; }
+      .hero-btns { justify-content: center; }
+      .hero-visual { display: none; }
+      .why-section { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== زر لوحة التحكم المخفي ===== -->
+<button id="admin-trigger" title="لوحة التحكم">⚙</button>
+
+<!-- ===== ADMIN OVERLAY ===== -->
+<div id="admin-overlay">
+  <div class="admin-modal">
+    <div class="admin-header">
+      <div>
+        <h2>⚙️ لوحة تحكم أومجيا</h2>
+        <p id="admin-header-sub">أدخل كلمة السر للوصول</p>
+      </div>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+
+      <!-- Login Screen -->
+      <div id="login-screen">
+        <div class="admin-login-icon">🔐</div>
+        <div class="admin-login-title">تسجيل الدخول</div>
+        <div class="admin-login-sub">أدخل كلمة السر الخاصة بك للوصول إلى لوحة التحكم</div>
+        <div class="login-error" id="login-error">❌ كلمة السر غلط، حاول تاني</div>
+        <input type="password" class="admin-input" id="pass-input" placeholder="••••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+        <button class="admin-btn" onclick="doLogin()">🔓 دخول</button>
+      </div>
+
+      <!-- Admin Panel -->
+      <div id="admin-panel">
+        <div class="admin-top-bar">
+          <div class="admin-welcome">
+            أهلاً بك، صاحب الصيدلية 👋
+            <span>يمكنك تعديل بياناتك ومشاهدة الرسائل من هنا</span>
+          </div>
+          <button class="logout-btn" onclick="doLogout()">🚪 خروج</button>
+        </div>
+
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="switchTab('info')">📋 البيانات</button>
+          <button class="admin-tab" onclick="switchTab('msgs')">📩 الرسائل <span id="msgs-badge"></span></button>
+          <button class="admin-tab" onclick="switchTab('formspree')">🔗 Formspree</button>
+        </div>
+
+        <!-- Tab: Info -->
+        <div class="tab-content active" id="tab-info">
+          <div class="field-group">
+            <label class="field-label">📞 رقم التليفون الرئيسي</label>
+            <input class="field-input" id="f-phone" type="tel" placeholder="01xxxxxxxxx" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">💬 رقم الواتساب</label>
+            <input class="field-input" id="f-whatsapp" type="tel" placeholder="01xxxxxxxxx" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">📍 العنوان</label>
+            <input class="field-input" id="f-address" type="text" placeholder="مثال: شارع التحرير، الدقي، الجيزة" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">✉️ الإيميل</label>
+            <input class="field-input" id="f-email" type="email" placeholder="info@omjia.com" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">🕐 ساعات العمل</label>
+            <input class="field-input" id="f-hours" type="text" placeholder="٩ صباحاً – ١٢ منتصف الليل يومياً" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">📘 رابط فيسبوك</label>
+            <input class="field-input" id="f-fb" type="url" placeholder="https://facebook.com/omjia" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">📸 رابط إنستجرام</label>
+            <input class="field-input" id="f-ig" type="url" placeholder="https://instagram.com/omjia" />
+          </div>
+          <button class="save-btn" onclick="saveInfo()">💾 حفظ التغييرات</button>
+          <div class="save-success" id="save-ok">✅ تم حفظ البيانات وتحديث الموقع بنجاح!</div>
+        </div>
+
+        <!-- Tab: Messages -->
+        <div class="tab-content" id="tab-msgs">
+          <div id="msgs-container">
+            <div class="no-msgs"><span>📭</span>لا توجد رسائل بعد.<br>ستظهر هنا بمجرد إرسال العملاء للفورم.</div>
+          </div>
+        </div>
+
+        <!-- Tab: Formspree -->
+        <div class="tab-content" id="tab-formspree">
+          <div style="background: var(--blue-ultra); border: 1px solid var(--blue-pale); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+            <h4 style="color: var(--blue-deep); font-size: 16px; margin-bottom: 10px;">📧 كيف تشغّل Formspree؟</h4>
+            <p style="font-size: 14px; color: var(--gray-text); line-height: 1.9;">
+              1️⃣ روح على <strong>formspree.io</strong> وعمل حساب مجاني<br>
+              2️⃣ اعمل "New Form" وحط إيميلك<br>
+              3️⃣ هياخد كود زي ده: <code style="background:#dbeafe; padding:2px 8px; border-radius:4px; font-size:13px;">https://formspree.io/f/xxxxxyyy</code><br>
+              4️⃣ الصق الكود في الخانة اللي تحت واضغط حفظ<br>
+              5️⃣ من دلوقتي كل رسالة تيجي من الفورم هتوصلك على إيميلك مباشرة ✅
+            </p>
+          </div>
+          <div class="field-group">
+            <label class="field-label">🔗 Formspree Endpoint URL</label>
+            <input class="field-input" id="f-formspree" type="url" placeholder="https://formspree.io/f/xxxxxyyy" />
+          </div>
+          <button class="save-btn" onclick="saveFormspree()">💾 حفظ وتفعيل</button>
+          <div class="save-success" id="formspree-ok">✅ تم تفعيل Formspree! الرسائل دلوقتي بتوصل على إيميلك.</div>
+        </div>
+
+      </div><!-- /admin-panel -->
+    </div><!-- /admin-body -->
+  </div>
+</div>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-icon">💊</div>
+    <span class="logo-text">أوم<span>جيا</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#services">خدماتنا</a></li>
+    <li><a href="#products">المنتجات</a></li>
+    <li><a href="#why">لماذا نحن</a></li>
+    <li><a href="#contact">تواصل معنا</a></li>
+    <li><a href="#contact" class="nav-cta">اطلب الآن</a></li>
+  </ul>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge"><span>⭐</span> صيدليتك الموثوقة منذ سنوات</div>
+    <h1>صحتك <em>أولويتنا</em> دائماً</h1>
+    <p>صيدلية أومجيا — وجهتك الأولى للدواء والرعاية الصحية. نقدم لك أفضل المنتجات الدوائية مع استشارة صيدلانية متخصصة على مدار الساعة.</p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn-primary">📞 تواصل معنا</a>
+      <a href="#services" class="btn-outline">اكتشف خدماتنا</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-card-stack">
+      <div class="hero-card card-main">
+        <h3>💊 صيدلية أومجيا</h3>
+        <p>رعاية صحية متكاملة في مكان واحد</p>
+        <div class="pill-row">
+          <span class="pill">أدوية</span><span class="pill">مكملات</span><span class="pill">عناية</span><span class="pill">استشارة</span>
+        </div>
+      </div>
+      <div class="hero-card card-float-1">
+        <div class="stat-num">+5000</div><div class="stat-label">منتج متاح</div>
+      </div>
+      <div class="hero-card card-float-2">
+        <div class="stat-num">24/7</div><div class="stat-label">دعم مستمر</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item reveal"><div class="num">+15,000</div><div class="label">عميل سعيد</div></div>
+  <div class="stat-item reveal"><div class="num">+5,000</div><div class="label">منتج دوائي</div></div>
+  <div class="stat-item reveal"><div class="num">24/7</div><div class="label">خدمة متواصلة</div></div>
+  <div class="stat-item reveal"><div class="num">+10</div><div class="label">سنوات خبرة</div></div>
+</div>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+  <div class="reveal">
+    <div class="section-tag">🏥 خدماتنا</div>
+    <h2 class="section-title">كل ما تحتاجه تحت سقف واحد</h2>
+    <p class="section-sub">نقدم مجموعة شاملة من الخدمات الصيدلانية لضمان صحتك وراحتك في كل وقت.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card reveal"><div class="service-icon">💊</div><h3>الأدوية الموصوفة</h3><p>توفير جميع الأدوية بوصفة طبية مع ضمان الجودة والأصالة.</p></div>
+    <div class="service-card reveal"><div class="service-icon">👨‍⚕️</div><h3>الاستشارة الصيدلانية</h3><p>فريق من الصيادلة المتخصصين جاهزون للإجابة على استفساراتك.</p></div>
+    <div class="service-card reveal"><div class="service-icon">🌿</div><h3>المكملات الغذائية</h3><p>أكبر تشكيلة من الفيتامينات والمعادن من أفضل الماركات العالمية.</p></div>
+    <div class="service-card reveal"><div class="service-icon">💆</div><h3>العناية بالبشرة</h3><p>منتجات تجميل وعناية طبية موثوقة وآمنة لجميع أنواع البشرة.</p></div>
+    <div class="service-card reveal"><div class="service-icon">🩺</div><h3>قياس العلامات الحيوية</h3><p>خدمة قياس ضغط الدم، السكر، والوزن مجاناً لعملائنا.</p></div>
+    <div class="service-card reveal"><div class="service-icon">🏠</div><h3>التوصيل للمنزل</h3><p>خدمة توصيل سريعة وموثوقة لجميع مشترياتك مباشرةً لباب منزلك.</p></div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products-section" id="products">
+  <div class="reveal">
+    <div class="section-tag">🛒 المنتجات</div>
+    <h2 class="section-title">تشكيلتنا الواسعة</h2>
+    <p class="section-sub">أكثر من 5000 منتج متاح لديك في متناول يدك.</p>
+  </div>
+  <div class="products-grid">
+    <div class="product-card reveal"><span class="product-emoji">💊</span><h4>أدوية مزمنة</h4><p>ضغط، سكر، قلب</p><span class="product-tag">متوفر</span></div>
+    <div class="product-card reveal"><span class="product-emoji">🌡️</span><h4>أدوية طارئة</h4><p>حمى، ألم، التهاب</p><span class="product-tag">متوفر</span></div>
+    <div class="product-card reveal"><span class="product-emoji">🧴</span><h4>عناية بالجسم</h4><p>كريمات، لوشن</p><span class="product-tag">متوفر</span></div>
+    <div class="product-card reveal"><span class="product-emoji">🌿</span><h4>أعشاب طبيعية</h4><p>مكملات نباتية</p><span class="product-tag">متوفر</span></div>
+    <div class="product-card reveal"><span class="product-emoji">👶</span><h4>منتجات الأطفال</h4><p>حليب، حفاضات</p><span class="product-tag">متوفر</span></div>
+    <div class="product-card reveal"><span class="product-emoji">💉</span><h4>مستلزمات طبية</h4><p>أدوات ومعدات</p><span class="product-tag">متوفر</span></div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why-section" id="why">
+  <div class="why-visual reveal">
+    <h3>لماذا تختار أومجيا؟</h3>
+    <p>ثقة تبنى على الجودة والأمانة</p>
+    <ul class="why-list">
+      <li><span class="check">✓</span> أدوية أصلية 100% مضمونة</li>
+      <li><span class="check">✓</span> أسعار تنافسية وعروض دورية</li>
+      <li><span class="check">✓</span> صيادلة معتمدون ومتخصصون</li>
+      <li><span class="check">✓</span> خدمة توصيل سريعة وموثوقة</li>
+      <li><span class="check">✓</span> دعم متواصل على مدار الساعة</li>
+      <li><span class="check">✓</span> برنامج نقاط وولاء لعملائنا</li>
+    </ul>
+  </div>
+  <div class="reveal">
+    <div class="section-tag">⭐ مميزاتنا</div>
+    <h2 class="section-title">تجربة صحية لا مثيل لها</h2>
+    <ul class="features-list">
+      <li class="feature-item"><div class="feat-icon">🔒</div><div class="feat-text"><h4>جودة مضمونة</h4><p>جميع منتجاتنا تأتي مباشرة من الموردين المعتمدين مع شهادات الجودة.</p></div></li>
+      <li class="feature-item"><div class="feat-icon">⚡</div><div class="feat-text"><h4>خدمة فورية</h4><p>نضمن لك الرد السريع وتلبية احتياجاتك في أسرع وقت ممكن.</p></div></li>
+      <li class="feature-item"><div class="feat-icon">💰</div><div class="feat-text"><h4>أفضل الأسعار</h4><p>عروض وخصومات حصرية لعملائنا الدائمين مع برنامج نقاط الولاء.</p></div></li>
+      <li class="feature-item"><div class="feat-icon">📱</div><div class="feat-text"><h4>سهولة التواصل</h4><p>تواصل معنا عبر الهاتف أو الواتساب في أي وقت.</p></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="reveal" style="text-align:center; margin-bottom:60px;">
+    <div class="section-tag">💬 آراء عملائنا</div>
+    <h2 class="section-title">ماذا يقولون عنّا؟</h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="testi-text">"صيدلية أومجيا من أفضل الصيدليات اللي تعاملت معاها. الخدمة سريعة والصيدلاني كان محترف جداً."</p>
+      <div class="testi-author"><div class="avatar">م</div><div class="author-info"><strong>محمد أحمد</strong><span>عميل منذ 3 سنوات</span></div></div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="testi-text">"بجد مبسوطة جداً من التعامل مع أومجيا، دايماً عندهم المنتج اللي بدور عليه وبأسعار كويسة."</p>
+      <div class="testi-author"><div class="avatar">س</div><div class="author-info"><strong>سارة محمود</strong><span>عميلة منذ سنتين</span></div></div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="testi-text">"خدمة التوصيل رهيبة، الطلب وصلني في أقل من ساعة! وفريق الخدمة محترم ومتجاوب."</p>
+      <div class="testi-author"><div class="avatar">ع</div><div class="author-info"><strong>عمر حسن</strong><span>عميل منذ عام</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="reveal">احتاج دواء؟ نحن هنا لك! 💊</h2>
+  <p class="reveal">تواصل معنا الآن واحصل على استشارة صيدلانية مجانية</p>
+  <a href="#contact" class="btn-white reveal">📞 تواصل معنا الآن</a>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <div style="text-align:center; margin-bottom:60px;" class="reveal">
+    <div class="section-tag">📞 تواصل معنا</div>
+    <h2 class="section-title">نحن هنا من أجلك</h2>
+    <p class="section-sub" style="margin:0 auto;">لا تتردد في التواصل معنا لأي سؤال أو طلب</p>
+  </div>
+  <div class="contact-grid">
+    <div class="contact-info reveal">
+      <h3>معلومات التواصل</h3>
+      <p>يسعدنا تواصلك معنا في أي وقت. فريقنا دائماً مستعد لمساعدتك.</p>
+      <div class="contact-item">
+        <div class="c-icon">📞</div>
+        <div class="c-info"><strong>الهاتف</strong><span id="display-phone">01000000000</span></div>
+      </div>
+      <div class="contact-item">
+        <div class="c-icon">💬</div>
+        <div class="c-info"><strong>واتساب</strong><span id="display-whatsapp">01000000000</span></div>
+      </div>
+      <div class="contact-item">
+        <div class="c-icon">📍</div>
+        <div class="c-info"><strong>العنوان</strong><span id="display-address">القاهرة، مصر</span></div>
+      </div>
+      <div class="contact-item">
+        <div class="c-icon">🕐</div>
+        <div class="c-info"><strong>ساعات العمل</strong><span id="display-hours">٩ صباحاً – ١٢ منتصف الليل يومياً</span></div>
+      </div>
+    </div>
+    <div class="contact-form reveal">
+      <h3>أرسل لنا رسالة</h3>
+      <form id="contact-form" onsubmit="submitForm(event)">
+        <div class="form-group">
+          <label>الاسم الكامل</label>
+          <input type="text" name="name" placeholder="اكتب اسمك هنا" required />
+        </div>
+        <div class="form-group">
+          <label>رقم الهاتف</label>
+          <input type="tel" name="phone" placeholder="01xxxxxxxxx" required />
+        </div>
+        <div class="form-group">
+          <label>نوع الاستفسار</label>
+          <select name="type">
+            <option>استفسار عن دواء</option>
+            <option>طلب توصيل</option>
+            <option>استشارة صيدلانية</option>
+            <option>شكوى أو اقتراح</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>رسالتك</label>
+          <textarea name="message" placeholder="اكتب رسالتك هنا..." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; justify-content:center;" id="submit-btn">
+          إرسال الرسالة ✉️
+        </button>
+        <div class="form-success-msg" id="form-success">✅ تم إرسال رسالتك بنجاح! سنتواصل معك قريباً 💊</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <div class="footer-logo-icon">💊</div>
+        <span class="footer-logo-text">صيدلية أومجيا</span>
+      </div>
+      <p>صيدليتك الموثوقة للرعاية الصحية المتكاملة.</p>
+    </div>
+    <div class="footer-col">
+      <h4>خدماتنا</h4>
+      <ul>
+        <li><a href="#">الأدوية الموصوفة</a></li>
+        <li><a href="#">المكملات الغذائية</a></li>
+        <li><a href="#">العناية بالبشرة</a></li>
+        <li><a href="#">التوصيل للمنزل</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>روابط مهمة</h4>
+      <ul>
+        <li><a href="#">من نحن</a></li>
+        <li><a href="#">عروضنا</a></li>
+        <li><a href="#">المدونة الصحية</a></li>
+        <li><a href="#">اتصل بنا</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>تواصل معنا</h4>
+      <ul>
+        <li><a href="#" id="footer-phone">📞 01000000000</a></li>
+        <li><a href="#" id="footer-whatsapp">💬 واتساب</a></li>
+        <li><a href="#" id="footer-address">📍 القاهرة، مصر</a></li>
+        <li><a href="#" id="footer-email">✉️ info@omjia.com</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 صيدلية أومجيا — جميع الحقوق محفوظة</p>
+    <div class="social-links">
+      <a class="social-btn" id="social-fb" href="#" target="_blank">📘</a>
+      <a class="social-btn" id="social-ig" href="#" target="_blank">📸</a>
+      <div class="social-btn">🐦</div>
+      <div class="social-btn">▶️</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ===== STORAGE KEY =====
+  const STORE = 'omjia_data';
+  const PASS = 'pharmacy123';
+
+  // ===== LOAD DATA =====
+  function getData() {
+    try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch(e) { return {}; }
+  }
+  function saveData(d) { localStorage.setItem(STORE, JSON.stringify(d)); }
+
+  // ===== APPLY DATA TO PAGE =====
+  function applyData() {
+    const d = getData();
+    if (d.phone) {
+      document.getElementById('display-phone').textContent = d.phone;
+      document.getElementById('footer-phone').textContent = '📞 ' + d.phone;
+    }
+    if (d.whatsapp) {
+      document.getElementById('display-whatsapp').textContent = d.whatsapp;
+      document.getElementById('footer-whatsapp').textContent = '💬 ' + d.whatsapp;
+    }
+    if (d.address) {
+      document.getElementById('display-address').textContent = d.address;
+      document.getElementById('footer-address').textContent = '📍 ' + d.address;
+    }
+    if (d.hours) document.getElementById('display-hours').textContent = d.hours;
+    if (d.email) document.getElementById('footer-email').textContent = '✉️ ' + d.email;
+    if (d.fb) document.getElementById('social-fb').href = d.fb;
+    if (d.ig) document.getElementById('social-ig').href = d.ig;
+  }
+
+  // ===== ADMIN OPEN/CLOSE =====
+  document.getElementById('admin-trigger').addEventListener('click', () => {
+    document.getElementById('admin-overlay').classList.add('open');
+  });
+  function closeAdmin() {
+    document.getElementById('admin-overlay').classList.remove('open');
+  }
+  document.getElementById('admin-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('admin-overlay')) closeAdmin();
+  });
+
+  // ===== LOGIN =====
+  function doLogin() {
+    const val = document.getElementById('pass-input').value;
+    if (val === PASS) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+      document.getElementById('admin-header-sub').textContent = 'مرحباً بك في لوحة التحكم';
+      loadFormFields();
+      loadMessages();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('pass-input').value = '';
+    }
+  }
+
+  function doLogout() {
+    document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('admin-panel').style.display = 'none';
+    document.getElementById('pass-input').value = '';
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('admin-header-sub').textContent = 'أدخل كلمة السر للوصول';
+    closeAdmin();
+  }
+
+  // ===== TABS =====
+  function switchTab(name) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ===== LOAD FIELDS =====
+  function loadFormFields() {
+    const d = getData();
+    document.getElementById('f-phone').value = d.phone || '';
+    document.getElementById('f-whatsapp').value = d.whatsapp || '';
+    document.getElementById('f-address').value = d.address || '';
+    document.getElementById('f-email').value = d.email || '';
+    document.getElementById('f-hours').value = d.hours || '';
+    document.getElementById('f-fb').value = d.fb || '';
+    document.getElementById('f-ig').value = d.ig || '';
+    document.getElementById('f-formspree').value = d.formspree || '';
+  }
+
+  // ===== SAVE INFO =====
+  function saveInfo() {
+    const d = getData();
+    d.phone = document.getElementById('f-phone').value;
+    d.whatsapp = document.getElementById('f-whatsapp').value;
+    d.address = document.getElementById('f-address').value;
+    d.email = document.getElementById('f-email').value;
+    d.hours = document.getElementById('f-hours').value;
+    d.fb = document.getElementById('f-fb').value;
+    d.ig = document.getElementById('f-ig').value;
+    saveData(d);
+    applyData();
+    const ok = document.getElementById('save-ok');
+    ok.style.display = 'block';
+    setTimeout(() => ok.style.display = 'none', 3000);
+  }
+
+  // ===== SAVE FORMSPREE =====
+  function saveFormspree() {
+    const d = getData();
+    d.formspree = document.getElementById('f-formspree').value;
+    saveData(d);
+    const ok = document.getElementById('formspree-ok');
+    ok.style.display = 'block';
+    setTimeout(() => ok.style.display = 'none', 3000);
+  }
+
+  // ===== MESSAGES =====
+  function saveMessage(msg) {
+    const d = getData();
+    if (!d.messages) d.messages = [];
+    d.messages.unshift({ ...msg, time: new Date().toLocaleString('ar-EG'), read: false });
+    saveData(d);
+  }
+
+  function loadMessages() {
+    const d = getData();
+    const msgs = d.messages || [];
+    const container = document.getElementById('msgs-container');
+    const badge = document.getElementById('msgs-badge');
+    const unread = msgs.filter(m => !m.read).length;
+    badge.textContent = unread > 0 ? ` (${unread})` : '';
+
+    if (msgs.length === 0) {
+      container.innerHTML = '<div class="no-msgs"><span>📭</span>لا توجد رسائل بعد.</div>';
+      return;
+    }
+    let html = '<table class="msgs-table"><thead><tr><th>الاسم</th><th>التليفون</th><th>النوع</th><th>الرسالة</th><th>الوقت</th></tr></thead><tbody>';
+    msgs.forEach(m => {
+      html += `<tr>
+        <td><strong>${m.name}</strong></td>
+        <td>${m.phone}</td>
+        <td><span class="msg-badge new">${m.type}</span></td>
+        <td style="max-width:180px; word-break:break-word;">${m.message}</td>
+        <td style="font-size:12px; color:var(--gray-text);">${m.time}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  // ===== SUBMIT FORM =====
+  async function submitForm(e) {
+    e.preventDefault();
+    const form = document.getElementById('contact-form');
+    const btn = document.getElementById('submit-btn');
+    const successMsg = document.getElementById('form-success');
+    const d = getData();
+
+    const name = form.name.value;
+    const phone = form.phone.value;
+    const type = form.type.value;
+    const message = form.message.value;
+
+    btn.textContent = '⏳ جاري الإرسال...';
+    btn.disabled = true;
+
+    // Save to local messages
+    saveMessage({ name, phone, type, message });
+
+    // Send via Formspree if configured
+    if (d.formspree && d.formspree.includes('formspree.io')) {
+      try {
+        await fetch(d.formspree, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ name, phone, type, message })
+        });
+      } catch(err) { /* silent fail, message already saved locally */ }
+    }
+
+    btn.textContent = 'إرسال الرسالة ✉️';
+    btn.disabled = false;
+    form.reset();
+    successMsg.style.display = 'block';
+    setTimeout(() => successMsg.style.display = 'none', 5000);
+  }
+
+  // ===== SCROLL REVEAL =====
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ===== INIT =====
+  applyData();
+</script>
+</body>
+</html>
